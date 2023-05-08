@@ -5,7 +5,7 @@ import time
 
 import redis.asyncio as redis
 import uvicorn
-from fastapi import Depends, FastAPI, File, UploadFile
+from fastapi import Depends, FastAPI, File, UploadFile, Form, HTTPException
 from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
 from fastapi_cache.decorator import cache
@@ -14,6 +14,7 @@ from fastapi_limiter.depends import RateLimiter
 from pydantic import BaseModel
 from PIL import Image 
 import random
+# from BASEER import Baseer
 
 from config import settings
 
@@ -41,33 +42,46 @@ def image_validation(file: UploadFile):
         image = Image.open(file.file)
         image.verify()
     except:
-        return False
+        return "The image seems corrupted or unsupported."
     
     # Max size validation
-    if image.width < MAX_IMAGE_WIDTH and image.height < MAX_IMAGE_HEIGHT:
-        # Min size validation
-        if image.width > MIN_IMAGE_WIDTH or image.height > MIN_IMAGE_HEIGHT:
-            return True
+    if image.width > MAX_IMAGE_WIDTH and image.height > MAX_IMAGE_HEIGHT:
+        return "The given image exceeds the allowed size ("+str(MAX_IMAGE_HEIGHT)+"×"+str(MAX_IMAGE_WIDTH)+")."
+    if image.width < MIN_IMAGE_WIDTH or image.height < MIN_IMAGE_HEIGHT:
+        return "The given image is smaller than the allowed size ("+str(MIN_IMAGE_HEIGHT)+"×"+str(MIN_IMAGE_WIDTH)+")."
     
-    # default is false
-    return False
+    return True
 
 @app.get("/")
 def root():
     # endpoints can be marked as `async def` if they do async work, otherwise use `def`
     # which will make the request run on a thread "awaited"
-    return {"message": "Hello world. Welcome to BASEER AI!"}
+    return {"message":"Welcome to BASEER API. To use the API send an image to '/predict' POST endpoint"}
 
 
 @app.get("/specs")
 def specs():
-    return {"max_width": 512, "max_height": 512, "accepted_formats": ["jpg", "png"]}
+    return {"max_width": MAX_IMAGE_WIDTH, "max_height": MAX_IMAGE_HEIGHT, "accepted_formats": ["jpg", "png"]}
 
-@app.get("/predict")
-def predict():
-    fake_captions = [ "صورة لحصان يركض على الشاطئ", "رجلان يرتديان شماغ يتصافحان", "خيمة في وسط الرمال وسيارات حولها" ]
-    # return a random fake caption 
-    return {"prediction": random.choice(fake_captions)}
+@app.post("/predict")
+def predict(file: UploadFile = File(None), is_dummy: bool = Form(False)):
+
+    is_dummy = bool(is_dummy)
+    if is_dummy:
+        dummy_captions = [ "صورة لحصان يركض على الشاطئ", "رجلان يرتديان شماغ يتصافحان", "خيمة في وسط الرمال وسيارات حولها", "مناظر خلابة لجبال الألب في سويسرا","غروب الشمس الرائع في صحراء دبي","زهرة الفراولة الحمراء في حقل خضراء","صورة فوتوغرافية لمسجد الشيخ زايد في أبوظبي","طيور البطريق القطبية في جنوب القطب الجنوبي","مناظر خلابة للشلالات الطبيعية في فيكتوريا","غروب الشمس في البحر الأحمر","صورة فوتوغرافية لقصر الحمراء في غرناطة","تفاح أحمر وجوافة حمراء على طاولة خشبية","ربيع السويداء السورية وأشجار الزيتون الخضراء"]
+
+        # return a random dummy caption 
+        return {"prediction": random.choice(dummy_captions),"image_validation": image_validation(file)}
+
+    if file.content_type not in ["image/jpeg", "image/png"]:
+        raise HTTPException(status_code=415, detail="Unsupported file given.")
+    
+    image_val = image_validation(file)
+    if(image_val != True):
+        raise HTTPException(status_code=415, detail=image_val)        
+
+    return HTTPException(status_code=501, detail=f"This feature is under development.")
+    # return {"prediction": prediction}
 
 # @app.get("/user", response_model=UserResponse)
 # def current_user():
@@ -92,18 +106,18 @@ def predict():
 #     }
 
 
-# @app.on_event("startup")
-# async def startup():
-#     redis_url = f"redis://{settings.REDISUSER}:{settings.REDISPASSWORD}@{settings.REDISHOST}:{settings.REDISPORT}"
-#     try:
-#         red = redis.from_url(redis_url, encoding="utf-8", decode_responses=True)
-#         await FastAPILimiter.init(red)
-#     except Exception:
-#         raise Exception(
-#             "Redis connection failed, ensure redis is running on the default port 6379"
-#         )
+@app.on_event("startup")
+async def startup():
+    redis_url = f"redis://{settings.REDISUSER}:{settings.REDISPASSWORD}@{settings.REDISHOST}:{settings.REDISPORT}"
+    try:
+        red = redis.from_url(redis_url, encoding="utf-8", decode_responses=True)
+        await FastAPILimiter.init(red)
+    except Exception:
+        raise Exception(
+            "Redis connection failed, ensure redis is running on the default port 6379"
+        )
 
-#     FastAPICache.init(RedisBackend(red), prefix="fastapi-cache")
+    FastAPICache.init(RedisBackend(red), prefix="fastapi-cache")
 
 
 @app.middleware("http")
