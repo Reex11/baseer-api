@@ -5,13 +5,15 @@ import time
 
 import redis.asyncio as redis
 import uvicorn
-from fastapi import Depends, FastAPI
+from fastapi import Depends, FastAPI, File, UploadFile
 from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
 from fastapi_cache.decorator import cache
 from fastapi_limiter import FastAPILimiter
 from fastapi_limiter.depends import RateLimiter
 from pydantic import BaseModel
+from PIL import Image 
+import random
 
 from config import settings
 
@@ -26,49 +28,82 @@ class UserResponse(BaseModel):
     email: str
     name: str
 
+# TODO: Create a control panel for the admin to change these values and save them in the database
+MAX_IMAGE_WIDTH = 1024
+MAX_IMAGE_HEIGHT = 1024
+
+MIN_IMAGE_WIDTH = 256
+MIN_IMAGE_HEIGHT = 256
+
+def image_validation(file: UploadFile):
+    # PIL Image validation
+    try:
+        image = Image.open(file.file)
+        image.verify()
+    except:
+        return False
+    
+    # Max size validation
+    if image.width < MAX_IMAGE_WIDTH and image.height < MAX_IMAGE_HEIGHT:
+        # Min size validation
+        if image.width > MIN_IMAGE_WIDTH or image.height > MIN_IMAGE_HEIGHT:
+            return True
+    
+    # default is false
+    return False
 
 @app.get("/")
 def root():
     # endpoints can be marked as `async def` if they do async work, otherwise use `def`
     # which will make the request run on a thread "awaited"
-    return {"message": "Hello world. Welcome to FastAPI!"}
+    return {"message": "Hello world. Welcome to BASEER AI!"}
 
 
-@app.get("/user", response_model=UserResponse)
-def current_user():
-    # this endpoint's repsonse will match the UserResponse model
-    return {
-        "user_id": "0123456789",
-        "email": "me@kylegill.com",
-        "name": "Kyle Gill",
-        "extra_field_ignored_by_model": "This field is ignored by the response model",
-    }
+@app.get("/specs")
+def specs():
+    return {"max_width": 512, "max_height": 512, "accepted_formats": ["jpg", "png"]}
+
+@app.get("/predict")
+def predict():
+    fake_captions = [ "صورة لحصان يركض على الشاطئ", "رجلان يرتديان شماغ يتصافحان", "خيمة في وسط الرمال وسيارات حولها" ]
+    # return a random fake caption 
+    return {"prediction": random.choice(fake_captions)}
+
+# @app.get("/user", response_model=UserResponse)
+# def current_user():
+#     # this endpoint's repsonse will match the UserResponse model
+#     return {
+#         "user_id": "0123456789",
+#         "email": "me@kylegill.com",
+#         "name": "Kyle Gill",
+#         "extra_field_ignored_by_model": "This field is ignored by the response model",
+#     }
 
 
-@app.get("/cached", response_model=UserResponse)
-@cache(expire=30)  # cache for 30 seconds
-async def cached():
-    # for demonstration purposes, this is a slow endpoint that waits 5 seconds
-    await asyncio.sleep(5)
-    return {
-        "user_id": "0123456789",
-        "email": "cached@kylegill.com",
-        "name": "Kyle Gill",
-    }
+# @app.get("/cached", response_model=UserResponse)
+# @cache(expire=30)  # cache for 30 seconds
+# async def cached():
+#     # for demonstration purposes, this is a slow endpoint that waits 5 seconds
+#     await asyncio.sleep(5)
+#     return {
+#         "user_id": "0123456789",
+#         "email": "cached@kylegill.com",
+#         "name": "Kyle Gill",
+#     }
 
 
-@app.on_event("startup")
-async def startup():
-    redis_url = f"redis://{settings.REDISUSER}:{settings.REDISPASSWORD}@{settings.REDISHOST}:{settings.REDISPORT}"
-    try:
-        red = redis.from_url(redis_url, encoding="utf-8", decode_responses=True)
-        await FastAPILimiter.init(red)
-    except Exception:
-        raise Exception(
-            "Redis connection failed, ensure redis is running on the default port 6379"
-        )
+# @app.on_event("startup")
+# async def startup():
+#     redis_url = f"redis://{settings.REDISUSER}:{settings.REDISPASSWORD}@{settings.REDISHOST}:{settings.REDISPORT}"
+#     try:
+#         red = redis.from_url(redis_url, encoding="utf-8", decode_responses=True)
+#         await FastAPILimiter.init(red)
+#     except Exception:
+#         raise Exception(
+#             "Redis connection failed, ensure redis is running on the default port 6379"
+#         )
 
-    FastAPICache.init(RedisBackend(red), prefix="fastapi-cache")
+#     FastAPICache.init(RedisBackend(red), prefix="fastapi-cache")
 
 
 @app.middleware("http")
