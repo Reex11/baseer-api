@@ -53,18 +53,18 @@ def image_validation(file: UploadFile):
     return True
 
 @app.get("/")
-def root():
+async def root():
     # endpoints can be marked as `async def` if they do async work, otherwise use `def`
     # which will make the request run on a thread "awaited"
     return {"message":"Welcome to BASEER API. To use the API send an image to '/predict' POST endpoint"}
 
 
 @app.get("/specs")
-def specs():
+async def specs():
     return {"max_width": MAX_IMAGE_WIDTH, "max_height": MAX_IMAGE_HEIGHT, "accepted_formats": ["jpg", "png"]}
 
 @app.post("/predict")
-def predict(file: UploadFile = File(None), is_dummy: bool = Form(False)):
+async def predict(file: UploadFile = File(None), is_dummy: bool = Form(False)):
 
     is_dummy = bool(is_dummy)
     if is_dummy:
