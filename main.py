@@ -18,7 +18,7 @@ import random
 
 from config import settings
 
-app = FastAPI(dependencies=[Depends(RateLimiter(times=1, seconds=5))])
+app = FastAPI(dependencies=[Depends(RateLimiter(times=10, seconds=5))])
 logger = logging.getLogger(__name__)
 # .env variables can be validated and accessed from the config, here to set a log level
 logging.basicConfig(level=settings.LOG_LEVEL.upper())
