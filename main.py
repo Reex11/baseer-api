@@ -14,7 +14,8 @@ from fastapi_limiter.depends import RateLimiter
 from pydantic import BaseModel
 from PIL import Image 
 import random
-# from BASEER import Baseer
+
+from baseer import Baseer
 
 from config import settings
 
@@ -52,6 +53,9 @@ def image_validation(file: UploadFile):
     
     return True
 
+
+baseer = Baseer()
+
 @app.get("/")
 async def root():
     # endpoints can be marked as `async def` if they do async work, otherwise use `def`
@@ -71,7 +75,7 @@ async def predict(file: UploadFile = File(None), is_dummy: bool = Form(False)):
         dummy_captions = [ "صورة لحصان يركض على الشاطئ", "رجلان يرتديان شماغ يتصافحان", "خيمة في وسط الرمال وسيارات حولها", "مناظر خلابة لجبال الألب في سويسرا","غروب الشمس الرائع في صحراء دبي","زهرة الفراولة الحمراء في حقل خضراء","صورة فوتوغرافية لمسجد الشيخ زايد في أبوظبي","طيور البطريق القطبية في جنوب القطب الجنوبي","مناظر خلابة للشلالات الطبيعية في فيكتوريا","غروب الشمس في البحر الأحمر","صورة فوتوغرافية لقصر الحمراء في غرناطة","تفاح أحمر وجوافة حمراء على طاولة خشبية","ربيع السويداء السورية وأشجار الزيتون الخضراء"]
 
         # return a random dummy caption 
-        return {"prediction": random.choice(dummy_captions),"image_validation": image_validation(file)}
+        return {"prediction": random.choice(dummy_captions)}
 
     if file.content_type not in ["image/jpeg", "image/png"]:
         raise HTTPException(status_code=415, detail="Unsupported file given.")
@@ -79,6 +83,11 @@ async def predict(file: UploadFile = File(None), is_dummy: bool = Form(False)):
     image_val = image_validation(file)
     if(image_val != True):
         raise HTTPException(status_code=415, detail=image_val)        
+
+
+    baseer.set_img(file.file)
+    prediction = baseer.predict()
+    return {"prediction": prediction}
 
     return HTTPException(status_code=501, detail=f"This feature is under development.")
     # return {"prediction": prediction}

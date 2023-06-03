@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "main"
-version = "1.0.0"
-description = "FastAPI starter template with caching and rate-limiting built-in"
+version = "1.0.1"
+description = "Handles the API for the Baseer project"
 authors = []
 license = "MIT"
 
@@ -26,6 +26,7 @@ watchfiles = "^0.18.1"
 websockets = "^10.4"
 pillow = "^9.5.0"
 python-multipart = "^0.0.6"
+baseer = {git = "ssh://git@github.com/Reex11/baseer-core.git"}
 
 [tool.poetry.dev-dependencies]
 
