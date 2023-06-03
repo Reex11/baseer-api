@@ -26,9 +26,7 @@ watchfiles = "^0.18.1"
 websockets = "^10.4"
 pillow = "^9.5.0"
 python-multipart = "^0.0.6"
-baseer = {git = "https://github.com/Reex11/baseer-core.git"}
-
-[tool.poetry.dev-dependencies]
+baseer = {git = "https://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@github.com/Reex11/baseer-core.git"}
 
 [tool.poetry.scripts]
 dev = "main:dev"

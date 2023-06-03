@@ -272,7 +272,7 @@ translate = "^3.6.1"
 
 [package.source]
 type = "git"
-url = "https://github.com/Reex11/baseer-core.git"
+url = "https://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@github.com/Reex11/baseer-core.git"
 reference = "HEAD"
 resolved_reference = "d8ba6cd34c80edf8a1d2dfc6af8ce8d18ffb9f00"
 
@@ -4467,4 +4467,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "9808f9516c49c412473fad73254ddc0f0bc64ab5966106be7aaa195f6a4fb902"
+content-hash = "73660c42fe5a7d02622a6f372ea86358f07261abd1f772088846845b7717acbd"
