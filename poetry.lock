@@ -246,7 +246,7 @@ files = [
 
 [[package]]
 name = "baseer"
-version = "0.0.2"
+version = "0.0.3"
 description = "BASEER AI - Arabic Image Captioning with Arabic culture object and landmark detection"
 optional = false
 python-versions = "^3.8"
@@ -274,7 +274,7 @@ translate = "^3.6.1"
 type = "git"
 url = "https://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@github.com/Reex11/baseer-core.git"
 reference = "HEAD"
-resolved_reference = "d8ba6cd34c80edf8a1d2dfc6af8ce8d18ffb9f00"
+resolved_reference = "f4dc64974f34dc3f2fd41fc2689863ef91556bea"
 
 [[package]]
 name = "blinker"

@@ -29,6 +29,16 @@ class Settings(BaseSettings):
     REDISHOST: str = "localhost"
     REDISPORT: str = "6379"
 
+    # processing device
+    DEVICE: str = "gpu"
+
+    # image settings
+    MAX_IMAGE_WIDTH: int = 2048
+    MAX_IMAGE_HEIGHT: int = 2048
+
+    MIN_IMAGE_WIDTH: int = 256
+    MIN_IMAGE_HEIGHT: int = 256
+
     @validator("REDISHOST", "REDISPORT")
     def check_redis(cls, v, field):
         if not v:

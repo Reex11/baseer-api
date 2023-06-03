@@ -30,13 +30,6 @@ class UserResponse(BaseModel):
     email: str
     name: str
 
-# TODO: Create a control panel for the admin to change these values and save them in the database
-MAX_IMAGE_WIDTH = 1024
-MAX_IMAGE_HEIGHT = 1024
-
-MIN_IMAGE_WIDTH = 256
-MIN_IMAGE_HEIGHT = 256
-
 def image_validation(file: UploadFile):
     # PIL Image validation
     try:
@@ -46,15 +39,15 @@ def image_validation(file: UploadFile):
         return "The image seems corrupted or unsupported."
     
     # Max size validation
-    if image.width > MAX_IMAGE_WIDTH and image.height > MAX_IMAGE_HEIGHT:
-        return "The given image exceeds the allowed size ("+str(MAX_IMAGE_HEIGHT)+"×"+str(MAX_IMAGE_WIDTH)+")."
-    if image.width < MIN_IMAGE_WIDTH or image.height < MIN_IMAGE_HEIGHT:
-        return "The given image is smaller than the allowed size ("+str(MIN_IMAGE_HEIGHT)+"×"+str(MIN_IMAGE_WIDTH)+")."
+    if image.width > settings.MAX_IMAGE_WIDTH and image.height > settings.MAX_IMAGE_HEIGHT:
+        return "The given image exceeds the allowed size ("+str(settings.MAX_IMAGE_HEIGHT)+"×"+str(settings.MAX_IMAGE_WIDTH)+")."
+    if image.width < settings.MIN_IMAGE_WIDTH or image.height < settings.MIN_IMAGE_HEIGHT:
+        return "The given image is smaller than the allowed size ("+str(settings.MIN_IMAGE_HEIGHT)+"×"+str(settings.MIN_IMAGE_WIDTH)+")."
     
     return True
 
 
-baseer = Baseer()
+baseer = Baseer(settings.DEVICE)
 
 @app.get("/")
 async def root():
@@ -65,7 +58,7 @@ async def root():
 
 @app.get("/specs")
 async def specs():
-    return {"max_width": MAX_IMAGE_WIDTH, "max_height": MAX_IMAGE_HEIGHT, "accepted_formats": ["jpg", "png"]}
+    return {"max_width": settings.MAX_IMAGE_WIDTH, "max_height": settings.MAX_IMAGE_HEIGHT, "accepted_formats": ["jpg", "png"]}
 
 @app.post("/predict")
 async def predict(file: UploadFile = File(None), is_dummy: bool = Form(False)):
