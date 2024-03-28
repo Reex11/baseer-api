@@ -6,6 +6,7 @@ import time
 import redis.asyncio as redis
 import uvicorn
 from fastapi import Depends, FastAPI, File, UploadFile, Form, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
 from fastapi_cache.decorator import cache
@@ -20,6 +21,16 @@ from baseer import Baseer
 from config import settings
 
 app = FastAPI(dependencies=[Depends(RateLimiter(times=10, seconds=5))])
+
+origins = ["*"]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 logger = logging.getLogger(__name__)
 # .env variables can be validated and accessed from the config, here to set a log level
 logging.basicConfig(level=settings.LOG_LEVEL.upper())
